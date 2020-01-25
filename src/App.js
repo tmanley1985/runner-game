@@ -5,11 +5,13 @@ import { useState, useEffect } from 'react';
 
 const canvasStyle = {
   border: '1px solid black',
+  background: '#FF0083'
 }
 const FPS = 30
 const [ LEFT, UP, RIGHT, DOWN ] = [37,38,39,40]
 
 const [ CANVAS_WIDTH, CANVAS_HEIGHT ] = [400, 300]
+
 class Player {
 
   constructor() {
@@ -80,9 +82,45 @@ class Player {
   }
 }
 
+class Enemy {
+  constructor() {
+    this.initialY = 280
+    this.initialX = CANVAS_WIDTH + 40
+    this.x = this.initialX
+    this.y = this.initialY
+    this.x_velocity = 10
+    this.y_velocity = 0
+    this.width = 40
+    this.height = 20
+    this.friction = 0.9
+  }
+
+  draw = ctx => {
+    console.log(this.x)
+    const { friction, width, height} = this
+
+    // Let's not stray beyond the boundary.
+    if (this.x < 0) {
+      this.x = this.initialX
+    }
+
+    this.x -= this.x_velocity + 10
+    this.y -= this.y_velocity
+
+
+    // Friction
+    this.x_velocity *= friction
+    this.y_velocity *= friction
+  
+    ctx.fillStyle = '#00CCBC'
+    ctx.fillRect(this.x,this.y,width,height)
+  }
+}
+
 function App() {
 
-  const [player, updatePlayer] = useState(new Player())
+  const [player] = useState(new Player())
+  const [enemy] = useState(new Enemy())
 
   useEffect(
     () => {
@@ -95,6 +133,7 @@ function App() {
       setInterval(() => {
         ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
         player.draw(ctx, directionsCache)
+        enemy.draw(ctx)
       }, FPS)
 
       document.addEventListener('keydown', e => {
