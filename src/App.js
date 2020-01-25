@@ -8,6 +8,7 @@ const canvasStyle = {
 }
 const FPS = 30
 const [ LEFT, UP, RIGHT, DOWN ] = [37,38,39,40]
+
 const [ CANVAS_WIDTH, CANVAS_HEIGHT ] = [400, 300]
 class Player {
 
@@ -55,6 +56,15 @@ class Player {
 
     if (this.isJumping()) {
       this.y += gravity
+    }
+
+    // Let's not stray beyond the boundary.
+    if (this.x < 0) {
+      this.x = 0
+    }
+    // Let's not stray beyond the boundary.
+    if (this.x > CANVAS_WIDTH - this.width) {
+      this.x = CANVAS_WIDTH - this.width
     }
 
     this.x += this.x_velocity
