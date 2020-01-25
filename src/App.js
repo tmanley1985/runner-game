@@ -19,19 +19,23 @@ class Player {
     this.y_velocity = 0
     this.width = 40
     this.height = 60
-    this.gravity = 5
+    this.gravity = 7
     this.friction = 0.9
+    this.currentDirections = []
   }
   
-  move = direction => {
-    if (direction === 'LEFT') {
+  move = directions => {
+    this.currentDirections = directions
+  
+    if (this.currentDirections.includes('LEFT')) {
+      console.log('got in here')
       this.x_velocity -= 2
     }
-    if (direction === 'RIGHT') {
+    if (this.currentDirections.includes('RIGHT')) {
       this.x_velocity += 2
     }
 
-    if (direction === 'UP' && this.isBelowJumpMax() && !this.isJumping()) {
+    if (this.currentDirections.includes('UP') && this.isBelowJumpMax() && !this.isJumping()) {
       this.y_velocity += 20
     }
   }
@@ -43,7 +47,10 @@ class Player {
 
   isBelowJumpMax = () => this.y > 200
 
-  draw = ctx => {
+  draw = (ctx, directions) => {
+
+    this.move(directions)
+  
     const { gravity, friction, width, height} = this
 
     if (this.isJumping()) {
@@ -72,23 +79,42 @@ function App() {
       const canvas = document.getElementById("myCanvas");
       const ctx = canvas.getContext("2d");
   
+      // We want to be able to have multiple keys pressed at once so we have to use a cache here.
+      let directionsCache = []
+
       setInterval(() => {
         ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-        player.draw(ctx)
+        player.draw(ctx, directionsCache)
       }, FPS)
 
       document.addEventListener('keydown', e => {
         e.preventDefault()
 
+        if (e.keyCode === LEFT && !directionsCache.includes('LEFT')) {
+          directionsCache = [...directionsCache, 'LEFT'].filter(direction => direction !== 'RIGHT')
+        }
+        if (e.keyCode === RIGHT && !directionsCache.includes('RIGHT')) {
+          directionsCache = [...directionsCache, 'RIGHT'].filter(direction => direction !== 'LEFT')
+        }
+        if (e.keyCode === UP && !directionsCache.includes('UP')) {
+          directionsCache = [...directionsCache, 'UP']
+        }
+      })
+
+      // When keys are let go we don't want them moving in that direction anymore.
+      document.addEventListener('keyup', e => {
+        e.preventDefault()
+
         if (e.keyCode === LEFT) {
-          player && player.move('LEFT')
+          directionsCache = directionsCache.filter(direction => direction !== 'LEFT')
         }
         if (e.keyCode === RIGHT) {
-          player && player.move('RIGHT')
+          directionsCache = directionsCache.filter(direction => direction !== 'RIGHT')
         }
         if (e.keyCode === UP) {
-          player && player.move('UP')
+          directionsCache = directionsCache.filter(direction => direction !== 'UP')
         }
+
       })
     }
   )
