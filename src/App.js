@@ -31,7 +31,6 @@ class Player {
     this.currentDirections = directions
   
     if (this.currentDirections.includes('LEFT')) {
-      console.log('got in here')
       this.x_velocity -= 2
     }
     if (this.currentDirections.includes('RIGHT')) {
@@ -49,6 +48,23 @@ class Player {
   isJumping = () => !this.canJump()
 
   isBelowJumpMax = () => this.y > 200
+
+  hasCollidedWith = entity => {
+    console.log(Math.trunc(this.x + this.width))
+    console.log(Math.trunc(entity.x))
+    // Let's get the collection of coordinates
+    if (
+      // If the right edge of player is equal to or greater than enemy's left edge.
+      Math.trunc(this.x + this.width) >= Math.trunc(entity.x)
+      && // AND the player's left edge has not passed the enemy's right edge.
+      Math.trunc(this.x) <= Math.trunc(entity.x + entity.width)
+      && //
+      Math.trunc(this.y + this.height) >= Math.trunc(entity.y)
+    ) {
+      return true
+    }
+    return false
+  }
 
   draw = (ctx, directions) => {
 
@@ -96,7 +112,7 @@ class Enemy {
   }
 
   draw = ctx => {
-    console.log(this.x)
+
     const { friction, width, height} = this
 
     // Let's not stray beyond the boundary.
@@ -121,6 +137,8 @@ function App() {
 
   const [player] = useState(new Player())
   const [enemy] = useState(new Enemy())
+  const [gameOver, setGameOver] = useState(false)
+  // const [gameLoop, setGameLoop] = useState(null)
 
   useEffect(
     () => {
@@ -130,12 +148,16 @@ function App() {
       // We want to be able to have multiple keys pressed at once so we have to use a cache here.
       let directionsCache = []
 
-      setInterval(() => {
+      var interval = setInterval(() => {
         ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
         player.draw(ctx, directionsCache)
         enemy.draw(ctx)
+        if (player.hasCollidedWith(enemy)) {
+          clearInterval(interval)
+          setGameOver(() => true)
+        }
       }, FPS)
-
+  
       document.addEventListener('keydown', e => {
         e.preventDefault()
 
@@ -165,12 +187,19 @@ function App() {
         }
 
       })
-    }
+    }, [player, enemy]
   )
 
   return (
     <div className="App">
-      <canvas style={canvasStyle} id="myCanvas" width={CANVAS_WIDTH} height={CANVAS_HEIGHT}></canvas>
+      { !gameOver && <canvas style={canvasStyle} id="myCanvas" width={CANVAS_WIDTH} height={CANVAS_HEIGHT}></canvas> }
+      { gameOver && (
+        <div>
+          <div>Game Over</div>
+          <button onClick={() => window.location.reload()}>Challenge Again?</button>
+        </div>
+      )
+      }
     </div>
   );
 }
