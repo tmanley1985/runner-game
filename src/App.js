@@ -3,6 +3,8 @@ import logo from './logo.svg';
 import './App.css';
 import { useState, useEffect } from 'react';
 
+// https://www.colorbook.io/colorschemes/view/1625
+
 const canvasStyle = {
   border: '1px solid black',
   background: '#FF0083'
@@ -21,9 +23,12 @@ class Player {
     this.x_velocity = 0
     this.y_velocity = 0
     this.width = 40
-    this.height = 60
+    this.normalHeight = 60
+    this.shrunkenHeight = 20
+    this.height = this.normalHeight
     this.gravity = 7
     this.friction = 0.9
+    this.time = 0
     this.currentDirections = []
   }
   
@@ -40,6 +45,9 @@ class Player {
     if (this.currentDirections.includes('UP') && this.isBelowJumpMax() && !this.isJumping()) {
       this.y_velocity += 20
     }
+    if (this.currentDirections.includes('DOWN') && this.height === this.normalHeight) {
+      this.height = this.shrunkenHeight
+    }
   }
 
   // If they are on or below the ground, the can jump.
@@ -52,6 +60,7 @@ class Player {
   hasCollidedWith = entity => {
     // Canvas is bottom down, the top left corner starts at 0,0.
     // So the y axis is inverted. Down is more, Up is less.
+    // TODO convert these to accessor methods and possibly put into an entity class.
     const playerRightEdge  = Math.trunc(this.x + this.width)
     const playerLeftEdge   = Math.trunc(this.x)
     const playerBottomEdge = Math.trunc(this.y + this.height)
@@ -82,15 +91,23 @@ class Player {
   
     const { gravity, friction, width, height} = this
 
+    this.time++
+
+    // If we're shrunken, we need to grow.
+    // TODO I can refactor this later. Just trying to tinker.
+    if (this.height < this.normalHeight) {
+      this.height+=2
+    }
+
     if (this.isJumping()) {
       this.y += gravity
     }
 
-    // Let's not stray beyond the boundary.
+    // Let's not stray beyond the left edge of the screen.
     if (this.x < 0) {
       this.x = 0
     }
-    // Let's not stray beyond the boundary.
+    // Let's not stray beyond the right edge of the screen.
     if (this.x > CANVAS_WIDTH - this.width) {
       this.x = CANVAS_WIDTH - this.width
     }
@@ -110,7 +127,6 @@ class Player {
 
 class Enemy {
   constructor(type) {
-    console.log('TYPE: ' + type)
     const [RUNNING] = Enemy.getEnemyTypes()
     this.type = type
     this.initialY = type === RUNNING ? 280 : 200
@@ -154,7 +170,12 @@ class Enemy {
     this.x_velocity *= friction
     this.y_velocity *= friction
   
-    ctx.fillStyle = '#00CCBC'
+    if (this.type === FLYING) {
+      ctx.fillStyle = '#FED650'
+    }
+    if (this.type === RUNNING) {
+      ctx.fillStyle = '#CC0010'
+    }
     ctx.fillRect(this.x,this.y,width,height)
   }
 }
@@ -190,14 +211,21 @@ function App() {
       document.addEventListener('keydown', e => {
         e.preventDefault()
 
+        // Move Left
         if (e.keyCode === LEFT && !directionsCache.includes('LEFT')) {
           directionsCache = [...directionsCache, 'LEFT'].filter(direction => direction !== 'RIGHT')
         }
+        // Move Right
         if (e.keyCode === RIGHT && !directionsCache.includes('RIGHT')) {
           directionsCache = [...directionsCache, 'RIGHT'].filter(direction => direction !== 'LEFT')
         }
+        // Jump
         if (e.keyCode === UP && !directionsCache.includes('UP')) {
           directionsCache = [...directionsCache, 'UP']
+        }
+        // Shrink
+        if (e.keyCode === DOWN && !directionsCache.includes('DOWN')) {
+          directionsCache = [...directionsCache, 'DOWN']
         }
       })
 
@@ -214,7 +242,9 @@ function App() {
         if (e.keyCode === UP) {
           directionsCache = directionsCache.filter(direction => direction !== 'UP')
         }
-
+        if (e.keyCode === DOWN) {
+          directionsCache = directionsCache.filter(direction => direction !== 'DOWN')
+        }
       })
     }, [player, runningEnemy, flyingEnemy] // https://reactjs.org/docs/hooks-reference.html#conditionally-firing-an-effect
   )
