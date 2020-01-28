@@ -50,20 +50,30 @@ class Player {
   isBelowJumpMax = () => this.y > 200
 
   hasCollidedWith = entity => {
-    console.log(Math.trunc(this.x + this.width))
-    console.log(Math.trunc(entity.x))
+    // Canvas is bottom down, the top left corner starts at 0,0.
+    // So the y axis is inverted. Down is more, Up is less.
+    const playerRightEdge  = Math.trunc(this.x + this.width)
+    const playerLeftEdge   = Math.trunc(this.x)
+    const playerBottomEdge = Math.trunc(this.y + this.height)
+    const playerTopEdge    = Math.trunc(this.y)
+
+    const entityRightEdge  = Math.trunc(entity.x + entity.width)
+    const entityLeftEdge   = Math.trunc(entity.x)
+    const entityBottomEdge = Math.trunc(entity.y + entity.height)
+    const entityTopEdge    = Math.trunc(entity.y)
     // Let's get the collection of coordinates
     if (
       // If the right edge of player is equal to or greater than enemy's left edge.
-      Math.trunc(this.x + this.width) >= Math.trunc(entity.x)
+       playerRightEdge >= entityLeftEdge
       && // AND the player's left edge has not passed the enemy's right edge.
-      Math.trunc(this.x) <= Math.trunc(entity.x + entity.width)
-      && //
-      Math.trunc(this.y + this.height) >= Math.trunc(entity.y)
+       playerLeftEdge <= entityRightEdge
+      && // Either the player is above them or below them
+       (playerBottomEdge >= entityTopEdge && playerTopEdge <= entityBottomEdge)
     ) {
       return true
     }
     return false
+
   }
 
   draw = (ctx, directions) => {
@@ -99,30 +109,46 @@ class Player {
 }
 
 class Enemy {
-  constructor() {
-    this.initialY = 280
+  constructor(type) {
+    console.log('TYPE: ' + type)
+    const [RUNNING] = Enemy.getEnemyTypes()
+    this.type = type
+    this.initialY = type === RUNNING ? 280 : 200
+    // Let's put this enemy off screen.
     this.initialX = CANVAS_WIDTH + 40
     this.x = this.initialX
     this.y = this.initialY
-    this.x_velocity = 10
+    this.x_velocity = type === RUNNING ? 10 : 5
     this.y_velocity = 0
     this.width = 40
     this.height = 20
     this.friction = 0.9
+    this.time = 0
   }
+
+  static getEnemyTypes = () => ['RUNNING', 'FLYING']
 
   draw = ctx => {
 
-    const { friction, width, height} = this
+    const { friction, width, height } = this
+
+    const [ RUNNING, FLYING ] = Enemy.getEnemyTypes()
 
     // Let's not stray beyond the boundary.
     if (this.x < 0) {
       this.x = this.initialX
     }
 
-    this.x -= this.x_velocity + 10
-    this.y -= this.y_velocity
+    if (this.type === FLYING) {
+      this.x -= this.x_velocity + 5
+      this.y = Math.trunc(Math.sin(this.time) * 20) + this.initialY
+      this.time = this.time + 100
+    }
 
+    if (this.type === RUNNING) {
+      this.x -= this.x_velocity + 10
+      this.y -= this.y_velocity
+    }
 
     // Friction
     this.x_velocity *= friction
@@ -133,10 +159,12 @@ class Enemy {
   }
 }
 
+
 function App() {
 
+  const [RUNNING, FLYING] = Enemy.getEnemyTypes()
   const [player] = useState(new Player())
-  const [enemy] = useState(new Enemy())
+  const [[runningEnemy, flyingEnemy]] = useState([new Enemy(RUNNING), new Enemy(FLYING)])
   const [gameOver, setGameOver] = useState(false)
   // const [gameLoop, setGameLoop] = useState(null)
 
@@ -151,8 +179,9 @@ function App() {
       var interval = setInterval(() => {
         ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
         player.draw(ctx, directionsCache)
-        enemy.draw(ctx)
-        if (player.hasCollidedWith(enemy)) {
+        runningEnemy.draw(ctx)
+        flyingEnemy.draw(ctx)
+        if (player.hasCollidedWith(runningEnemy) || player.hasCollidedWith(flyingEnemy)) {
           clearInterval(interval)
           setGameOver(() => true)
         }
@@ -187,7 +216,7 @@ function App() {
         }
 
       })
-    }, [player, enemy]
+    }, [player, runningEnemy, flyingEnemy] // https://reactjs.org/docs/hooks-reference.html#conditionally-firing-an-effect
   )
 
   return (
