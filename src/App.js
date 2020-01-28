@@ -1,6 +1,9 @@
 import React from 'react';
-import logo from './logo.svg';
 import './App.css';
+import arrowDown from './Assets/arrowDown.svg'
+import arrowUp from './Assets/arrowUp.svg'
+import arrowLeft from './Assets/arrowLeft.svg'
+import arrowRight from './Assets/arrowRight.svg'
 import { useState, useEffect } from 'react';
 
 // https://www.colorbook.io/colorschemes/view/1625
@@ -10,10 +13,19 @@ const canvasStyle = {
   background: '#FF0083'
 }
 const FPS = 30
-const [ LEFT, UP, RIGHT, DOWN ] = [37,38,39,40]
+const [ LEFT, UP, RIGHT, DOWN, ENTER ] = [37,38,39,40,13]
 
 const [ CANVAS_WIDTH, CANVAS_HEIGHT ] = [400, 300]
 
+const Controls = () => (
+  <div className="controls">
+    <div>Left: <img src={arrowLeft} className="controls--direction" alt="move left" /></div>
+    <div>Right: <img src={arrowRight} className="controls--direction" alt="move right" /></div>
+    <div>Jump: <img src={arrowUp} className="controls--direction" alt="jump" /></div>
+    <div>Shrink: <img src={arrowDown} className="controls--direction" alt="shrink" /></div>
+    <div>Power Jump: <img src={arrowDown} className="controls--direction" alt="power jump" /> then <img src={arrowUp} className="controls--direction" alt="logo" /></div>
+  </div>
+)
 class Player {
 
   constructor() {
@@ -247,17 +259,25 @@ function App() {
         if (e.keyCode === DOWN) {
           directionsCache = directionsCache.filter(direction => direction !== 'DOWN')
         }
+        if (e.keyCode === ENTER) {
+          window.location.reload()
+        }
       })
     }, [player, runningEnemy, flyingEnemy] // https://reactjs.org/docs/hooks-reference.html#conditionally-firing-an-effect
   )
 
   return (
     <div className="App">
-      { !gameOver && <canvas style={canvasStyle} id="myCanvas" width={CANVAS_WIDTH} height={CANVAS_HEIGHT}></canvas> }
+      { !gameOver && (
+        <div>
+          <canvas style={canvasStyle} id="myCanvas" width={CANVAS_WIDTH} height={CANVAS_HEIGHT}></canvas>
+          <Controls />
+        </div>
+      )}
       { gameOver && (
         <div>
-          <div>Game Over</div>
-          <button onClick={() => window.location.reload()}>Challenge Again?</button>
+          <h2>Game Over</h2>
+          <h3>Press Enter To Challenge Again!</h3>
         </div>
       )
       }

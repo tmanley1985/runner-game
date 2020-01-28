@@ -5,3 +5,8 @@
   height: 100vh;
   width: 100vw;
 }
+
+.controls--direction {
+  height: 40px;
+  width: 40px;
+}
