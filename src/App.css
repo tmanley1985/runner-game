@@ -6,7 +6,21 @@
   width: 100vw;
 }
 
+.controls {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin: 1.5em;
+}
+.controls--row {
+  display: flex;
+  width: 80%;
+  justify-content: flex-start;
+  align-items: center;
+}
 .controls--direction {
-  height: 40px;
-  width: 40px;
+  height: 30px;
+  width: 30px;
+  margin: 0 5px;
 }

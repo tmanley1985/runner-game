@@ -19,11 +19,12 @@ const [ CANVAS_WIDTH, CANVAS_HEIGHT ] = [400, 300]
 
 const Controls = () => (
   <div className="controls">
-    <div>Left: <img src={arrowLeft} className="controls--direction" alt="move left" /></div>
-    <div>Right: <img src={arrowRight} className="controls--direction" alt="move right" /></div>
-    <div>Jump: <img src={arrowUp} className="controls--direction" alt="jump" /></div>
-    <div>Shrink: <img src={arrowDown} className="controls--direction" alt="shrink" /></div>
-    <div>Power Jump: <img src={arrowDown} className="controls--direction" alt="power jump" /> then <img src={arrowUp} className="controls--direction" alt="logo" /></div>
+    <h4>Controls:</h4>
+    <div className="controls--row">Left: <img src={arrowLeft} className="controls--direction" alt="move left" /></div>
+    <div className="controls--row">Right: <img src={arrowRight} className="controls--direction" alt="move right" /></div>
+    <div className="controls--row">Jump: <img src={arrowUp} className="controls--direction" alt="jump" /></div>
+    <div className="controls--row">Shrink: <img src={arrowDown} className="controls--direction" alt="shrink" /></div>
+    <div className="controls--row">Power Jump: <img src={arrowDown} className="controls--direction" alt="power jump" /> then <img src={arrowUp} className="controls--direction" alt="logo" /></div>
   </div>
 )
 class Player {
