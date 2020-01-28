@@ -47,6 +47,8 @@ class Player {
     }
     if (this.currentDirections.includes('DOWN') && this.height === this.normalHeight) {
       this.height = this.shrunkenHeight
+      // We want to push to push the player down by the same number as we shrink it by.
+      this.y+= this.shrunkenHeight
     }
   }
 
